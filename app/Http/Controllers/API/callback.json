@@ -1,0 +1,11 @@
+{
+    "Status": "Success",
+    "Comment": "Transaction Found",
+    "Trans_Status": "Successful",
+    "Currency": "CDF",
+    "Amount": 100.0,
+    "Method": "mpesa",
+    "Customer_Details": "243828584688",
+    "Reference": "mp12345678",
+    "Action": "debit"
+}
