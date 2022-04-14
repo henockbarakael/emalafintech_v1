@@ -32,7 +32,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="card-header">
-                        <h4 class="card-title mb-0">Liste des utilisateurs du sytème</h4>
+                        <h4 class="card-title mb-0">Liste des utilisateurs du système</h4>
                         <p class="card-text">Chef d'agences
                             Le tableau ci-dessous affiche la liste des différents <code>utilisateurs</code>. Il est possible d'exporter le fchier au format désiré.
                         </p>
@@ -42,7 +42,7 @@
                         <table id="example1" class="table table-bordered table-striped" id="example">
                             <thead>
                                 <tr class="table-primary">
-
+                                    <th>#</th>
                                     <th>Nom complet</th>
                                     <th hidden>Nom complet</th>
                                     <th>Identifiant</th>
@@ -55,6 +55,7 @@
                             <tbody>
                                 @foreach ($result as $key=>$user )
                                 <tr>
+                                    <td class="text-center">{{ ++$key }}</td>
                                     <td>
                                         <span hidden class="image">{{ $user->avatar}}</span>
                                         <h2 class="table-avatar">
@@ -64,8 +65,8 @@
                                             <a hidden href="#" class="firstname">{{ $user->firstname}}</span></a>
                                         </h2>
                                     </td>
-                                    <td hidden class="id">{{ $user->id }}</td>
 
+                                    <td hidden class="id">{{ $user->id }}</td>
                                     <td class="rec_id">{{ $user->rec_id }}</td>
                                     <td class="email">{{ $user->email }}</td>
                                     <td class="telephone">{{ $user->telephone}}</td>
@@ -82,13 +83,9 @@
                                             <span class="badge bg-inverse-dark role_name">{{ $user->role_name }}</span>
                                         @endif
                                     </td>
-
-
                                     <td class="text-right">
-
-                                                <a class="btn btn-info btn-sm edit_user" data-toggle="modal"  data-target="#edit_user"><i class="fa fa-pencil m-r-5"></i></a>
-                                                <a class="btn btn-danger btn-sm userDelete" href="#" data-toggle="modal"  data-target="#delete_user"><i class="fa fa-trash-o m-r-5"></i></a>
-
+                                        <a class="btn btn-info btn-sm edit_user" data-toggle="modal"  data-target="#edit_user"><i class="fa fa-pencil m-r-5"></i></a>
+                                        <a class="btn btn-danger btn-sm userDelete" href="#" data-toggle="modal"  data-target="#delete_user"><i class="fa fa-trash-o m-r-5"></i></a>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -120,66 +117,127 @@
                                     <div class="form-group">
                                         <label>Prénom</label>
                                         <input class="form-control @error('firstname') is-invalid @enderror" type="text" id="" name="firstname" value="{{ old('firstname') }}" placeholder="Entrez votre prénom">
+                                        @error('firstname')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Nom</label>
                                         <input class="form-control @error('name') is-invalid @enderror" type="text" id="" name="name" value="{{ old('name') }}" placeholder="Entrez votre nom">
+                                        @error('name')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <label>Adresse E-mail</label>
-                                    <input class="form-control" type="email" id="" name="email" placeholder="Entrer votre adresse e-mail">
+                                    <input class="form-control @error('email') is-invalid @enderror" type="email" id="" name="email" value="{{ old('email') }}" placeholder="Entrer votre adresse e-mail">
+                                    @error('email')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Téléphone</label>
-                                        <input class="form-control" type="tel" id="" name="telephone" placeholder="243xxxxxxxxx">
+                                        <input class="form-control @error('telephone') is-invalid @enderror" value="{{ old('telephone') }}" type="tel" id="" name="telephone" placeholder="243xxxxxxxxx">
+                                        @error('telephone')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-6">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
                                     <label>Rôle</label>
-                                    <select class="select" name="role_name" id="role_name">
+                                    <select class="select @error('role_name') is-invalid @enderror" name="role_name" id="role_name">
                                         <option selected disabled> --Select --</option>
                                         @foreach ($role_name as $role )
                                         <option value="{{ $role->role_type }}">{{ $role->role_type }}</option>
                                         @endforeach
                                     </select>
+                                    @error('role_name')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                    @enderror
+                                    </div>
                                 </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-sm-6">
+                                    <div class="form-group">
+                                    <label>Sexe</label>
+                                    <select class="select @error('sexe') is-invalid @enderror" name="sexe" id="sexe">
+                                        <option selected disabled> --Select --</option>
+                                        <option value="Masculin">Masculin</option>
+                                        <option value="Féminin">Féminin</option>
+                                    </select>
+                                    @error('sexe')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
                                     <label>Status</label>
-                                    <select class="select" name="status" id="status">
+                                    <select class="select @error('status') is-invalid @enderror" name="status" id="status">
                                         <option selected disabled> --Select --</option>
                                         @foreach ($status_user as $status )
                                         <option value="{{ $status->type_name }}">{{ $status->type_name }}</option>
                                         @endforeach
                                     </select>
+                                    @error('status')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                             </div>
+                            </div>
                             <br>
-                            <div class="row">
+                            {{-- <div class="row">
 
                                 <div class="col-sm-12">
                                     <label>Photo</label>
                                     <input class="form-control" type="file" id="image" name="image">
                                 </div>
-                            </div>
+                            </div> --}}
                             <br>
-                            <div class="row">
+                            {{-- <div class="row">
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label>Mot de passe</label>
                                         <input type="password" class="form-control" name="password" placeholder="Entrez votre mot de passe">
+                                        @error('password')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <label>Repeat Password</label>
                                     <input type="password" class="form-control" name="password_confirmation" placeholder="Répétez le mot de passe">
+                                    @error('password_confirmation')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class="submit-section">
                                 <button type="submit" class="btn btn-primary submit-btn">Enregistrer</button>
                             </div>
@@ -247,27 +305,8 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                {{-- <div class="col-sm-6">
-                                    <label>Position</label>
-                                    <select class="select" name="position" id="e_position">
-                                        @foreach ($position as $positions )
-                                        <option value="{{ $positions->position }}">{{ $positions->position }}</option>
-                                        @endforeach
-                                    </select>
-                                </div> --}}
                             </div>
                             <br>
-                            <div class="row">
-
-                                {{-- <div class="col-sm-6">
-                                    <label>Department</label>
-                                    <select class="select" name="department" id="e_department">
-                                        @foreach ($department as $departments )
-                                        <option value="{{ $departments->department }}">{{ $departments->department }}</option>
-                                        @endforeach
-                                    </select>
-                                </div> --}}
-                            </div>
                             <div class="row">
 
                                 <div class="col-sm-12">
@@ -320,6 +359,12 @@
     <!-- /Page Wrapper -->
     @section('script')
     {{-- update js --}}
+    @if (count($errors) > 0)
+        <script type="text/javascript">
+            $('#add_user').modal('show');
+        </script>
+    @endif
+
     <script>
         $(function () {
           $("#example1").DataTable({

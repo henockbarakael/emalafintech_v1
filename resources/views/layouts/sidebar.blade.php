@@ -45,16 +45,36 @@
                 </li>
 
 
-                <li class="menu-title"> <span>UTILISATEUR</span> </li>
-                <li class="">
-                    <a href="{{ route('admin.list') }}" class="ml-2"><i class="la la-user-plus"></i> <span> Administrateur</span></a>
+                <li class="menu-title"> <span>Gestion des utilisateurs</span> </li>
+                <li class="#">
+                    <a href="#" class="ml-2">
+                        <i class="la la-user"></i>
+                        <span> Utilisateurs</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <ul style="display: none;">
+                        <li><a href="{{ route('userManagement') }}" style="margin-left: 5px">Liste des utilisateurs</a></li>
+                        <li><a href="{{ route('all/agences') }}" style="margin-left: 5px">Afficher un utilisateur</a></li>
+                    </ul>
                 </li>
-                <li class="">
-                    <a href="{{ route('gerant.list') }}" class="ml-2"><i class="la la-user-plus"></i> <span> Chef d'agence</span></a>
+                <li class="#">
+                    <a href="#" class="ml-2">
+                        <i class="la la-user"></i>
+                        <span> Rôles</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <ul style="display: none;">
+                        <li><a href="{{ route('all/agences') }}" style="margin-left: 5px">Liste des rôles</a></li>
+                        <li><a href="{{ route('all/agences') }}" style="margin-left: 5px">Afficher un rôle</a></li>
+                    </ul>
                 </li>
-                <li class="">
-                    <a href="{{ route('userManagement') }}" class="ml-2"><i class="la la-user-plus"></i> <span> Utilisateur</span> </span></a>
-                </li>
+                <li class="#"><a href="{{ route('all/roles') }}" class="ml-2"><i class="la la-user"></i> <span> Permissions</span></a></li>
+
+                {{-- <li class="#"><a href="{{ route('all/roles') }}" class="ml-2"><i class="la la-user"></i> <span> Attribution de rôle</span></a></li>
+                <li class="#"><a href="{{ route('all/roles') }}" class="ml-2"><i class="la la-user"></i> <span> Permissions</span></a></li>
+                <li class=""><a href="{{ route('admin.list') }}" class="ml-2"><i class="la la-user-plus"></i> <span> Utilisateurs</span></a></li>
+                <li class=""><a href="{{ route('gerant.list') }}" class="ml-2"><i class="la la-user-plus"></i> <span> Chef d'agence</span></a></li>
+                <li class=""><a href="{{ route('userManagement') }}" class="ml-2"><i class="la la-user-plus"></i> <span> Utilisateur</span> </span></a></li> --}}
 
                 <li class="menu-title"> <span>CONFIGURATION</span> </li>
                 <li class="submenu">

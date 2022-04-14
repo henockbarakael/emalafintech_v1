@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\activityLog;
+use App\Models\bank_information;
 use App\Models\caissier;
-use App\Models\chef_agence;
+use App\Models\emergency_information;
+use App\Models\family_information;
+use App\Models\gerant;
+use App\Models\personnal_information;
 use Illuminate\Http\Request;
 use Brian2694\Toastr\Facades\Toastr;
 use DB;
 use App\Models\User;
-use App\Models\Employee;
-use App\Models\Form;
+use Twilio\Rest\Client;
 use App\Models\ProfileInformation;
 use App\Models\userActivityLog;
 use App\Rules\MatchOldPassword;
@@ -25,7 +28,7 @@ class UserManagementController extends Controller
     {
         if (Auth::user()->role_name=='Admin')
         {
-            $result      = DB::table('users')->get();
+            $result      = DB::table('users')->orderBy('id','desc')->get();
             $role_name   = DB::table('role_type_users')->get();
             $position    = DB::table('position_types')->get();
             $department  = DB::table('departments')->get();
@@ -109,36 +112,34 @@ class UserManagementController extends Controller
         }
 
     }
-
     // use activity log
     public function activityLog()
     {
-        $activityLog = DB::table('user_activity_logs')->get();
+        $activityLog = DB::table('user_activity_logs')->orderBy('id','desc')->get();
         return view('usermanagement.user_activity_log',compact('activityLog'));
     }
     // activity log
     public function activityLogInLogOut()
     {
-        $activityLog = DB::table('activity_logs')->get();
+        $activityLog = DB::table('activity_logs')->orderBy('id','desc')->get();
         return view('usermanagement.activity_log',compact('activityLog'));
     }
-
     // profile user
     public function profile()
     {
         $user = Auth::User();
-
         Session::put('user', $user);
         $user=Session::get('user');
         $profile = $user->rec_id;
-
-        $user = DB::table('users')->get();
+        $user = DB::table('users')->orderBy('id','desc')->get();
         $employees = DB::table('profile_information')->where('rec_id',$profile)->first();
-
         if(empty($employees))
         {
             $information = DB::table('profile_information')->where('rec_id',$profile)->first();
-            return view('usermanagement.profile_user',compact('information','user'));
+            $personnal_information = DB::table('personnal_informations')->where('rec_id',$profile)->first();
+            $bank_information = DB::table('bank_informations')->where('rec_id',$profile)->first();
+            $family_information = DB::table('family_informations')->where('rec_id',$profile)->get();
+            return view('usermanagement.profile_user',compact('family_information','bank_information','information','user','personnal_information'));
 
         }else{
             $rec_id = $employees->rec_id;
@@ -153,7 +154,6 @@ class UserManagementController extends Controller
         }
 
     }
-
     // save profile information
     public function profileInformation(Request $request)
     {
@@ -184,12 +184,11 @@ class UserManagementController extends Controller
                 ];
                 User::where('rec_id',$request->rec_id)->update($update);
             }
-
             $information = ProfileInformation::updateOrCreate(['rec_id' => $request->rec_id]);
             $information->name         = $request->name;
             $information->$request->$request->id       = $request->rec_id;
             $information->email        = $request->email;
-            $information->birth_date   = $request->birthDate;
+            $information->phone   = $request->birthDate;
             $information->gender       = $request->gender;
             $information->address      = $request->address;
             $information->state        = $request->state;
@@ -201,6 +200,21 @@ class UserManagementController extends Controller
             $information->reports_to   = $request->reports_to;
             $information->save();
 
+            $dt         = Carbon::now();
+            $todayDate  = $dt->toDayDateTimeString();
+            $user = Auth::User();
+            $name = $user->name;
+            $email= $user->email;
+            $role_name= $user->role_name;
+            $activityLog = [
+                'user_name'    => $name,
+                'email'        => $email,
+                'role_name'    => $role_name,
+                'modify_user'  => $name.' a modifié les informations sur son profil',
+                'date_time'    => $todayDate,
+            ];
+
+            DB::table('user_activity_logs')->insert($activityLog);
             DB::commit();
             Toastr::success('Profile Information successfully :)','Success');
             return redirect()->back();
@@ -210,7 +224,155 @@ class UserManagementController extends Controller
             return redirect()->back();
         }
     }
+    // save family information
+    public function familyInformation(Request $request)
+    {
+        try{
+            $information = family_information::updateOrCreate(['rec_id' => $request->rec_id]);
+            $information->$request->$request->id       = $request->rec_id;
+            $information->fullname        = $request->fullname;
+            $information->phone   = $request->phone;
+            $information->relationship       = $request->relationship;
+            $information->save();
 
+            $dt         = Carbon::now();
+            $todayDate  = $dt->toDayDateTimeString();
+            $user = Auth::User();
+            $name = $user->name;
+            $email= $user->email;
+            $role_name= $user->role_name;
+            $activityLog = [
+                'user_name'    => $name,
+                'email'        => $email,
+                'role_name'    => $role_name,
+                'modify_user'  => $name.' a ajouté les informations sur sa famille',
+                'date_time'    => $todayDate,
+            ];
+
+            DB::table('user_activity_logs')->insert($activityLog);
+            DB::commit();
+            Toastr::success('Information ajoutée avec succès :)','Success');
+            return redirect()->back();
+        }catch(\Exception $e){
+            DB::rollback();
+            Toastr::error('Une erreur est survenue lors de l\'enregistrement des informations :)','Error');
+            return redirect()->back();
+        }
+    }
+    // save bank information
+    public function bankInformation(Request $request)
+    {
+        try{
+            $information = bank_information::updateOrCreate(['rec_id' => $request->rec_id]);
+            $information->$request->$request->id       = $request->rec_id;
+            $information->bank_name        = $request->bank_name;
+            $information->account_no   = $request->account_no;
+            $information->ifsc_code       = $request->ifsc_code;
+            $information->pan_no       = $request->pan_no;
+            $information->save();
+
+            $dt         = Carbon::now();
+            $todayDate  = $dt->toDayDateTimeString();
+            $user = Auth::User();
+            $name = $user->name;
+            $email= $user->email;
+            $role_name= $user->role_name;
+            $activityLog = [
+                'user_name'    => $name,
+                'email'        => $email,
+                'role_name'    => $role_name,
+                'modify_user'  => $name.' a ajouté ses informations bancaire',
+                'date_time'    => $todayDate,
+            ];
+
+            DB::table('user_activity_logs')->insert($activityLog);
+            DB::commit();
+            Toastr::success('Information ajoutée avec succès :)','Success');
+            return redirect()->back();
+        }catch(\Exception $e){
+            DB::rollback();
+            Toastr::error('Une erreur est survenue lors de l\'enregistrement des informations :)','Error');
+            return redirect()->back();
+        }
+    }
+    // save personnal information
+    public function personnalInformation(Request $request)
+    {
+        try{
+            $information = personnal_information::updateOrCreate(['rec_id' => $request->rec_id]);
+            $information->$request->$request->id       = $request->rec_id;
+            $information->card_type        = $request->card_type;
+            $information->card_id   = $request->card_id;
+            $information->card_exp_date       = $request->card_exp_date;
+            $information->township       = $request->township;
+            $information->city       = $request->city;
+            $information->nationality       = $request->nationality;
+            $information->marital_status       = $request->marital_status;
+            $information->no_children       = $request->no_children;
+            $information->save();
+
+            $dt         = Carbon::now();
+            $todayDate  = $dt->toDayDateTimeString();
+            $user = Auth::User();
+            $name = $user->name;
+            $email= $user->email;
+            $role_name= $user->role_name;
+            $activityLog = [
+                'user_name'    => $name,
+                'email'        => $email,
+                'role_name'    => $role_name,
+                'modify_user'  => $name.' a ajouté mis à jour ses informations personnelles',
+                'date_time'    => $todayDate,
+            ];
+
+            DB::table('user_activity_logs')->insert($activityLog);
+            DB::commit();
+            Toastr::success('Information ajoutée avec succès :)','Success');
+            return redirect()->back();
+        }catch(\Exception $e){
+            DB::rollback();
+            Toastr::error('Une erreur est survenue lors de l\'enregistrement des informations :)','Error');
+            return redirect()->back();
+        }
+    }
+    // save emergency information
+    public function emergencyInformation(Request $request)
+    {
+        try{
+            $information = emergency_information::updateOrCreate(['rec_id' => $request->rec_id]);
+            $information->$request->$request->id       = $request->rec_id;
+            $information->emergency_fullname1        = $request->emergency_fullname1;
+            $information->emergency_fullname2   = $request->emergency_fullname2;
+            $information->emergency_phone1       = $request->emergency_phone1;
+            $information->emergency_phone2       = $request->emergency_phone2;
+            $information->relationship1       = $request->relationship1;
+            $information->relationship2       = $request->relationship2;
+            $information->save();
+
+            $dt         = Carbon::now();
+            $todayDate  = $dt->toDayDateTimeString();
+            $user = Auth::User();
+            $name = $user->name;
+            $email= $user->email;
+            $role_name= $user->role_name;
+            $activityLog = [
+                'user_name'    => $name,
+                'email'        => $email,
+                'role_name'    => $role_name,
+                'modify_user'  => $name.' a ajouté les contacts d\'urgence',
+                'date_time'    => $todayDate,
+            ];
+
+            DB::table('user_activity_logs')->insert($activityLog);
+            DB::commit();
+            Toastr::success('Information ajoutée avec succès :)','Success');
+            return redirect()->back();
+        }catch(\Exception $e){
+            DB::rollback();
+            Toastr::error('Une erreur est survenue lors de l\'enregistrement des informations :)','Error');
+            return redirect()->back();
+        }
+    }
     // save new user
     public function addNewUserSave(Request $request)
     {
@@ -218,69 +380,60 @@ class UserManagementController extends Controller
             'firstname'      => 'required|string|max:255',
             'name'      => 'required|string|max:255',
             'email'     => 'required|string|email|max:255|unique:users',
-            'telephone'     => 'required|min:11|numeric',
+            'telephone'     => 'required|string|max:15',
             'role_name' => 'required|string|max:255',
             'status'    => 'required|string|max:255',
-            'image'     => 'required|image',
-            'password'  => 'required|string|min:8|confirmed',
-            'password_confirmation' => 'required',
+            'sexe'    => 'required|string|max:255',
         ]);
         DB::beginTransaction();
-
-            $dt       = Carbon::now();
-            $todayDate = $dt->toDayDateTimeString();
-            // Création d'un Gérant
-            if ($request->role_name == "Gérant") {
-                $image = time().'.'.$request->image->extension();
-                $request->image->move(public_path('assets/images'), $image);
-                $chef_agence = new chef_agence();
-                $chef_agence->firstname         = $request->firstname;
-                $chef_agence->name         = $request->name;
-                $chef_agence->email        = $request->email;
-                $chef_agence->join_date    = $todayDate;
-                $chef_agence->telephone = $request->telephone;
-                $chef_agence->role_name    = $request->role_name;
-                $chef_agence->status       = $request->status;
-                $chef_agence->avatar       = $image;
-                $chef_agence->password     = Hash::make($request->password);
-                $chef_agence->save();
-            }
-            // Création d'un Caissier
-            elseif ($request->role_name == "Caissier") {
-                $image = time().'.'.$request->image->extension();
-                $request->image->move(public_path('assets/images'), $image);
-                $caissier = new caissier();
-                $caissier->firstname         = $request->firstname;
-                $caissier->name         = $request->name;
-                $caissier->email        = $request->email;
-                $caissier->join_date    = $todayDate;
-                $caissier->telephone = $request->telephone;
-                $caissier->role_name    = $request->role_name;
-                $caissier->status       = $request->status;
-                $caissier->avatar       = $image;
-                $caissier->password     = Hash::make($request->password);
-                $caissier->save();
-            }
-            // Création d'un utilisateur normal
-            elseif($request->role_name == "Gérant" || $request->role_name == "Caissier" || $request->role_name == "Normal") {
-                $image = time().'.'.$request->image->extension();
-                $request->image->move(public_path('assets/images'), $image);
+        try {
+                $dt         = Carbon::now();
+                $todayDate  = $dt->toDayDateTimeString();
+            // $image = time().'.'.$request->image->extension();
+            // $request->image->move(public_path('assets/images'), $image);
+                if ($request->sexe == "Masculin") {
+                    $image = "boy.png";
+                }else {
+                        $image = "girl.png";
+                }
                 $user = new User;
+                $code           = random_int(100000, 999999);
                 $user->firstname    = $request->firstname;
                 $user->name         = $request->name;
                 $user->email        = $request->email;
                 $user->join_date    = $todayDate;
-                $user->telephone = $request->telephone;
+                $user->telephone    = $request->telephone;
                 $user->role_name    = $request->role_name;
                 $user->status       = $request->status;
                 $user->avatar       = $image;
-                $user->password     = Hash::make($request->password);
+                // $user->password     = Hash::make($request->password);
+                $user->confirmation_code     = $code;
                 $user->save();
-            }
-            DB::commit();
-            Toastr::success('Create new account successfully :)','Success');
-            return redirect()->route('userManagement');
-
+                // Twilio send SMS for confirmation code
+                $account_sid    = getenv("TWILIO_SID");
+                $auth_token     = getenv("TWILIO_TOKEN");
+                $twilio_number  = getenv("TWILIO_FROM");
+                $receiverNumber = $request->telephone;
+                $message        = "Bonjour ".$request->firstname." ".$request->name." votre code de confirmation est: ".$code;
+                if (!$user->save()) {
+                    DB::rollback();
+                    Toastr::error('L\'utilisateur n\'a pas pu être enregistré!','Error');
+                    return redirect()->back();
+                }
+                else {
+                    DB::commit();
+                    $client         = new Client($account_sid, $auth_token);
+                    $client->messages->create($receiverNumber, [
+                        'from' => $twilio_number,
+                        'body' => $message]);
+                    Toastr::success('Nouvel utilisateur enregistré avec succès!','Success');
+                    return redirect()->route('userManagement');
+                }
+        } catch(\Exception $e){
+            DB::rollback();
+            Toastr::error('Opération échouée :)','Error');
+            return redirect()->back();
+      }
     }
     public function storeUser(Request $request)
     {
@@ -293,11 +446,8 @@ class UserManagementController extends Controller
             'password'  => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required',
         ]);
-
         $dt       = Carbon::now();
         $todayDate = $dt->toDayDateTimeString();
-
-
         if ($request->role_name == "Caissier") {
             caissier::create([
                 'name'      => $request->name,
@@ -311,7 +461,7 @@ class UserManagementController extends Controller
             ]);
         }
         elseif ($request->role_name == "Gérant") {
-            chef_agence::create([
+            gerant::create([
                 'name'      => $request->name,
                 'firstname'      => $request->firstname,
                 'telephone'      => $request->telephone,
@@ -334,10 +484,6 @@ class UserManagementController extends Controller
                 'password'  => Hash::make($request->password),
             ]);
         }
-
-
-
-
         Toastr::success('Create new account successfully :)','Success');
         return redirect('login');
     }
@@ -457,33 +603,6 @@ class UserManagementController extends Controller
             Toastr::error('Echec de suppression :)','Error');
             return redirect()->back();
         }
-        // DB::beginTransaction();
-        // try{
-        //     $roles->firstname = $user->firstname;
-        //     $roles->name = $user->name;
-        //     $roles->email = $user->email;
-        //     $roles->telephone = $user->telephone;
-        //     $roles->description = "Suppression de l'utilisateur".$user->firstname. " " .$user->name;
-        //     $dt       = Carbon::now();
-        //     $roles->date_time = $dt->toDayDateTimeString();
-        //     $roles->save();
-
-        //     if($request->avatar =='photo_defaults.jpg'){
-        //            User::destroy($request->id);
-        //        }else{
-        //           User::destroy($request->id);
-        //           unlink('assets/images/'.$request->avatar);
-        //        }
-        //       DB::commit();
-
-        //       Toastr::success('User deleted successfully :)','Success');
-        //       return redirect()->route('userManagement');
-
-        //  }catch(\Exception $e){
-        //       DB::rollback();
-        //       Toastr::error('User deleted fail :)','Error');
-        //       return redirect()->back();
-        //  }
     }
 
     // view change password

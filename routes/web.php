@@ -51,7 +51,7 @@ Auth::routes();
 //     dd("Email is Sent.");
 // });
 
-Route::get('reset.password', [App\Http\Controllers\Mail\EmalaMail\ForgetPassword::class, 'resetPassword'])->name('reset.password');
+// Route::get('reset.password', [App\Http\Controllers\Mail\EmalaMail\ForgetPassword::class, 'resetPassword'])->name('reset.password');
 
 Route::get('sendSMS', [TwilioSMSController::class, 'index']);
 // ----------------------------- main dashboard ------------------------------//
@@ -77,7 +77,7 @@ Route::post('unlock', [App\Http\Controllers\LockScreen::class, 'unlock'])->name(
 
 // ------------------------------ register ---------------------------------//
 Route::get('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register');
-Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'storeUser'])->name('register');
+Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'storeUser'])->name('register.store');
 
 // ----------------------------- forget password ----------------------------//
 Route::get('forget-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'getEmail'])->name('forget-password');
@@ -90,6 +90,14 @@ Route::post('reset-password', [App\Http\Controllers\Auth\ResetPasswordController
 // ----------------------------- user profile ------------------------------//
 Route::get('profile_user', [App\Http\Controllers\UserManagementController::class, 'profile'])->middleware('auth')->name('profile_user');
 Route::post('profile/information/save', [App\Http\Controllers\UserManagementController::class, 'profileInformation'])->name('profile/information/save');
+Route::get('emergency_user', [App\Http\Controllers\UserManagementController::class, 'profile'])->middleware('auth')->name('emergency_user');
+Route::post('emergency/information/save', [App\Http\Controllers\UserManagementController::class, 'emergencyInformation'])->name('emergency/information/save');
+Route::get('personnal_user', [App\Http\Controllers\UserManagementController::class, 'profile'])->middleware('auth')->name('personnal_user');
+Route::post('personnal/information/save', [App\Http\Controllers\UserManagementController::class, 'personnalInformation'])->name('personnal/information/save');
+Route::get('family_user', [App\Http\Controllers\UserManagementController::class, 'profile'])->middleware('auth')->name('family_user');
+Route::post('family/information/save', [App\Http\Controllers\UserManagementController::class, 'familyInformation'])->name('family/information/save');
+Route::get('bank_user', [App\Http\Controllers\UserManagementController::class, 'profile'])->middleware('auth')->name('bank_user');
+Route::post('bank/information/save', [App\Http\Controllers\UserManagementController::class, 'bankInformation'])->name('bank/information/save');
 
 // ----------------------------- caissier profile ------------------------------//
 Route::get('profile_caissier', [App\Http\Controllers\Caissier\Manage\CaissierController::class, 'profile'])->middleware('auth')->name('profile_caissier');
